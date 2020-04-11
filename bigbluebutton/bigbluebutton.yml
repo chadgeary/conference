@@ -6,9 +6,15 @@
   become_user: root
   tasks:
 
+    - name: Pull BBB Installation Script
+      get_url:
+        url: https://ubuntu.bigbluebutton.org/bbb-install.sh
+        dest: /opt/bbb-install.sh
+        mode: '0544'
+
     - name: Initiate Installation via BBB Script
       shell: |
-        wget -qO- https://ubuntu.bigbluebutton.org/bbb-install.sh | bash -s -- -v xenial-220 -a -s {{ my_hostname }} -e {{ my_email }}
+        bash -s /opt/bbb-install.sh -v xenial-220 -a -s {{ my_hostname }} -e {{ my_email }}
 
     - name: Remove BBB's demos
       apt:
