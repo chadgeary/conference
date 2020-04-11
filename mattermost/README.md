@@ -8,7 +8,4 @@ sudo ansible-playbook mattermost.yml --extra-vars="target=localhost my_email=cha
 ```
 
 # Notes
-- DB password is generated on run.
-
-# Todo
-- Letsencrypt
+- DB password is generated on first run.
