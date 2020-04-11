@@ -175,15 +175,6 @@
       with_items:
         - /opt/mattermost/app/Dockerfile
 
-    - name: Ensure PUID/PGID in DB Dockerfile(s)
-      lineinfile:
-        path: /opt/mattermost/db/Dockerfile
-        insertafter: '^ENV DEFAULT_TIMEZONE UTC'
-        line: "{{ item }}"
-      with_items:
-        - "ARG PUID={{ pg_user.uid }}"
-        - "ARG PGID={{ pg_user.uid }}"
-
     - name: Add BBB plugin to Dockerfile
       lineinfile:
         path: /opt/mattermost/app/Dockerfile
