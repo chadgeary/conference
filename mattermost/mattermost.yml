@@ -31,7 +31,7 @@
     - name: Pre-LetsEncrypt HTTPD Placeholder Conf
       template:
         src: httpd/mattermost.conf
-        dest: /etc/http/conf/mattermost.conf
+        dest: /etc/httpd/conf/mattermost.conf
 
     - name: Run Certbot
       shell: |
