@@ -6,11 +6,13 @@ BigBlueButton
 - One domain name, e.g. bbb.chadg.net
 - One Ubuntu 1604 instance, e.g. t3a.large, 30GB vol.
 - See /bigbluebutton/instance for AWS EC2 instance building playbook.
+- Ports 80, 443, 7443, and 1935 on any external firewalls (or security groups).
 
 Mattermost 
 - One domain name, e.g. mm.chadg.net
 - One CentOS 7 instance, e.g. t3a.small, 10GB vol.
 - See /mattermost/instance for an AWS EC2 instance building playbook.
+- Ports 80, 443 on any external firewalls (or security groups).
 
 # Installation
 See READMEs of BigBlueButton and Mattermost subdirectories.
