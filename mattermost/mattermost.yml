@@ -145,7 +145,6 @@
         replace: "PUID={{ mm_user.uid }}"
       with_items:
         - /opt/mattermost/app/Dockerfile
-        - /opt/mattermost/docker-compose.yml
 
     - name: Ensure Mattermost PGID in Dockerfile(s)
       replace:
@@ -154,7 +153,6 @@
         replace: "PGID={{ mm_user.uid }}"
       with_items:
         - /opt/mattermost/app/Dockerfile
-        - /opt/mattermost/docker-compose.yml
 
     - name: Ensure PUID/PGID in DB Dockerfile(s)
       lineinfile:
@@ -162,8 +160,8 @@
         insertafter: '^ENV DEFAULT_TIMEZONE UTC'
         line: "{{ item }}"
       with_items:
-        - "PUID={{ pg_user.uid }}"
-        - "PGID={{ pg_user.uid }}"
+        - "ARG PUID={{ pg_user.uid }}"
+        - "ARG PGID={{ pg_user.uid }}"
 
     - name: Add BBB plugin to Dockerfile
       lineinfile:

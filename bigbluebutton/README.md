@@ -4,7 +4,7 @@ Creates a bigbluebutton server via bigbluebutton's installations cript, tested w
 # Deployment
 ```
 # local example
-sudo ansible-playbook bigbluebutton.yml --extra-vars="target=localhost my_hostname=mm.chadg.net my_email=chad@chadg.net"
+ansible-playbook bigbluebutton.yml --extra-vars="target=localhost my_hostname=mm.chadg.net my_email=chad@chadg.net"
 ```
 
 # Notes

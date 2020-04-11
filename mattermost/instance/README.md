@@ -24,7 +24,7 @@ instance_name=mattermost"
 ssh -i .ssh/my_aws_key centos@mm.chadg.net
 
 # Install ansible/git
-sudo yum install ansible git
+sudo yum -y install ansible git
 
 # Clone the repo (to run the playbook)
 git clone https://github.com/chadgeary/conference && cd conference/mattermost/
