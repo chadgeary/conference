@@ -14,7 +14,7 @@
 
     - name: Initiate Installation via BBB Script
       shell: |
-        bash -s /opt/bbb-install.sh -v xenial-220 -a -s {{ my_hostname }} -e {{ my_email }}
+        bash /opt/bbb-install.sh -v xenial-220 -a -s {{ my_hostname }} -e {{ my_email }}
 
     - name: Remove BBB's demos
       apt:
