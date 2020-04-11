@@ -12,11 +12,11 @@
         dest: /opt/bbb-install.sh
         mode: '0544'
 
-    - name: Initiate Installation via BBB Script
+    - name: Installation via BBB Script
       shell: |
         bash /opt/bbb-install.sh -v xenial-220 -a -s {{ my_hostname }} -e {{ my_email }}
 
-    - name: Remove BBB's demos
+    - name: Remove BBB demos
       apt:
         name: bbb-demo
         state: absent

@@ -183,14 +183,14 @@
       with_items:
         - /opt/mattermost/app/Dockerfile
 
-    - name: Add BBB plugin to Dockerfile
+    - name: Add BBB Plugin Step to Dockerfile
       lineinfile:
         path: /opt/mattermost/app/Dockerfile
         insertafter: '^COPY entrypoint.sh /'
         line: 'COPY bigbluebutton.tar.gz /'
       when: bbb|bool == True
 
-    - name: Fetch Big Blue Button plugin
+    - name: Fetch BBB Plugin Archive
       get_url:
         url: "https://github.com/blindsidenetworks/mattermost-plugin-bigbluebutton/releases/download/v{{ bbb_version }}/bigbluebutton_linux_amd64.tar.gz"
         dest: /opt/mattermost/app/bigbluebutton.tar.gz
@@ -209,7 +209,7 @@
       pause:
         seconds: 10
 
-    - name: Add BBB Plugin to Mattermost
+    - name: Install BBB Plugin to Mattermost
       shell: |
         docker exec mattermost_app_1 mattermost plugin add /bigbluebutton.tar.gz
         docker exec mattermost_app_1 mattermost plugin enable bigbluebutton
