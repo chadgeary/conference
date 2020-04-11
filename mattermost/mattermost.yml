@@ -15,15 +15,36 @@
         state: present
       vars:
         packages:
+          - certbot
+          - certbot-apache
           - docker
           - docker-compose
           - git
+          - httpd
+          - mod_ssl
 
-    - name: Docker Service
+    - name: Pre-LetsEncrypt HTTPD Include
+      lineinfile:
+        path: /etc/http/conf/httpd.conf
+        line: 'Include /etc/httpd/conf/mattermost.conf'
+
+    - name: Pre-LetsEncrypt HTTPD Placeholder Conf
+      template:
+        src: httpd/mattermost.conf
+        dest: /etc/http/conf/mattermost.conf
+
+    - name: Run Certbot
+      shell: |
+        certbot --apache --non-interactive --agree-tos --email {{ my_email }} --domains {{ my_hostname }} --redirect
+
+    - name: Docker and httpd Service
       systemd:
-        name: docker
+        name: "{{ item }}"
         state: started
         enabled: True
+      with_items:
+        - docker
+        - httpd
 
     - name: Mattermost User
       user:
