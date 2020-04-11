@@ -1,0 +1,26 @@
+---
+- name: bigbluebutton
+  hosts: "{{ target }}"
+  gather_facts: true
+  become: true
+  become_user: root
+  tasks:
+
+    - name: Initiate Installation via BBB Script
+      shell: |
+        wget -qO- https://ubuntu.bigbluebutton.org/bbb-install.sh | bash -s -- -v xenial-220 -a -s {{ my_hostname }} -e {{ my_email }}
+
+    - name: Remove BBB's demos
+      apt:
+        name: bbb-demo
+        state: absent
+        purge: yes
+
+    - name: Fetch Credential for Mattermost's BBB Plugin
+      shell: |
+        bbb-conf --secret
+      register: bbb_secret
+
+    - name: Display BBB Secret
+      debug:
+        var: bbb_secret.stdout_lines

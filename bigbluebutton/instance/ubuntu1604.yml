@@ -1,0 +1,36 @@
+---
+- name: ubuntu1604
+  hosts: localhost
+  connection: local
+  gather_facts: False
+  tasks:
+    - name: Canonical Ubuntu 1604 Official AMI
+      ec2_ami_info:
+        owners: 099720109477
+        region: "{{ region }}"
+        filters:
+          name: "ubuntu/images/hvm-ssd/ubuntu-xenial-16.04-amd64-server-*"
+          architecture: "x86_64"
+      register: ubuntu1604_amis
+
+    - name: Canonical Ubuntu 1604 Official Latest AMI
+      set_fact:
+        latest_ami: >
+          {{ ubuntu1604_amis.images | sort(attribute='creation_date') | last }}
+
+    - name: Launch Ubuntu 1604 Instance
+      ec2:
+        region: "{{ region }}"
+        group_id: "{{ sgroup_id }}"
+        vpc_subnet_id: "{{ subnet_id }}"
+        key_name: "{{ key_name }}"
+        image: "{{ latest_ami.image_id }}"
+        instance_tags:
+          Name: "{{ instance_name }}"
+          Source: "ansible"
+        instance_type: "{{ instance_type }}"
+        volumes:
+          - device_name: /dev/sda1
+            volume_type: gp2
+            volume_size: "{{ disk_gb }}"
+        count: "1"

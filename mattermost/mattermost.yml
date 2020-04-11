@@ -1,0 +1,198 @@
+---
+- name: mattermost
+  hosts: "{{ target }}"
+  gather_facts: true
+  tasks:
+
+    - name: EPEL (Required for EL7)
+      yum:
+        name: epel-release
+        state: present
+
+    - name: Packages
+      package:
+        name: "{{ packages }}"
+        state: present
+      vars:
+        packages:
+          - docker
+          - docker-compose
+          - git
+
+    - name: Docker Service
+      systemd:
+        name: docker
+        state: started
+        enabled: True
+
+    - name: Mattermost User
+      user:
+        name: mattermost
+        state: present
+        home: /opt/mattermost
+        createhome: yes
+      register: mm_user
+
+    - name: Postgres User
+      user:
+        name: postgres
+        state: present
+        home: /opt/mattermost
+        createhome: yes
+      register: pg_user
+
+    - name: Clone the Mattermost Docker Repository
+      git:
+        repo: 'https://github.com/mattermost/mattermost-docker.git'
+        dest: /opt/mattermost_repo
+
+    - name: Mattermost Directories
+      file:
+        path: "{{ item }}"
+        state: directory
+        owner: mattermost
+        group: mattermost
+        mode: '0750'
+      with_items:
+        - /opt/mattermost
+        - /opt/mattermost/volumes
+        - /opt/mattermost/volumes/app
+        - /opt/mattermost/volumes/app/mattermost
+        - /opt/mattermost/volumes/app/mattermost/data
+        - /opt/mattermost/volumes/app/mattermost/logs
+        - /opt/mattermost/volumes/app/mattermost/config
+        - /opt/mattermost/volumes/app/mattermost/plugins
+        - /opt/mattermost/volumes/app/mattermost/client-plugins
+
+    - name: Mattermost Directories
+      file:
+        path: "{{ item }}"
+        state: directory
+        owner: postgres
+        group: postgres
+        mode: '0750'
+      with_items:
+        - /opt/mattermost/volumes/db
+        - /opt/mattermost/volumes/db/var
+        - /opt/mattermost/volumes/db/var/lib
+        - /opt/mattermost/volumes/db/var/lib/postgresql
+        - /opt/mattermost/volumes/db/var/lib/postgresql/data
+
+    - name: Sync Mattermost Repo to Mattermost Directory
+      synchronize:
+        src: /opt/mattermost_repo/
+        dest: /opt/mattermost
+      become: yes
+      become_user: mattermost
+
+    - name: Replace mattermost docker-compose.yml with trimmed down version (no web)
+      copy:
+        src: docker/docker-compose.yml
+        dest: /opt/mattermost/docker-compose.yml
+        owner: mattermost
+        group: mattermost
+        mode: '0640'
+      become: yes
+      become_user: mattermost
+
+    - name: Replace app Dockerfile with up to date alpine
+      copy:
+        src: docker/appDockerfile
+        dest: /opt/mattermost/app/Dockerfile
+        owner: mattermost
+        group: mattermost
+        mode: '0640'
+      become: yes
+      become_user: mattermost
+
+    - name: Replace db Dockerfile with up to date postgres
+      copy:
+        src: docker/dbDockerfile
+        dest: /opt/mattermost/db/Dockerfile
+        owner: mattermost
+        group: mattermost
+        mode: '0640'
+      become: yes
+      become_user: mattermost
+
+    - name: Determine Mattermost DB Password Generated
+      stat:
+        path: /opt/mattermost/mmdbpass
+      register: mmdb_pass_file
+
+    - name: Generate Mattermost DB Password if not Generated
+      shell: |
+        head /dev/urandom | tr -dc A-Za-z0-9 | head -c 20 > /opt/mattermost/mmdbpass
+      when: mmdb_pass_file.stat.exists|bool == False
+      become: yes
+      become_user: mattermost
+
+    - name: Register Mattermost DB Password Generated
+      shell: |
+        cat /opt/mattermost/mmdbpass
+      register: mmdb_pass_content
+
+    - name: Ensure Mattermost DB Password in Docker Compose
+      replace:
+        path: /opt/mattermost/docker-compose.yml
+        regexp: 'mmdb_replaceme'
+        replace: "{{ mmdb_pass_content.stdout}}"
+
+    - name: Ensure Mattermost PUID in Dockerfile(s)
+      replace:
+        path: "{{ item }}"
+        regexp: 'PUID=2000'
+        replace: "PUID={{ mm_user.uid }}"
+      with_items:
+        - /opt/mattermost/app/Dockerfile
+        - /opt/mattermost/docker-compose.yml
+
+    - name: Ensure Mattermost PGID in Dockerfile(s)
+      replace:
+        path: "{{ item }}"
+        regexp: 'PGID=2000'
+        replace: "PGID={{ mm_user.uid }}"
+      with_items:
+        - /opt/mattermost/app/Dockerfile
+        - /opt/mattermost/docker-compose.yml
+
+    - name: Ensure PUID/PGID in DB Dockerfile(s)
+      lineinfile:
+        path: /opt/mattermost/db/Dockerfile
+        insertafter: '^ENV DEFAULT_TIMEZONE UTC'
+        line: "{{ item }}"
+      with_items:
+        - "PUID={{ pg_user.uid }}"
+        - "PGID={{ pg_user.uid }}"
+
+    - name: Add BBB plugin to Dockerfile
+      lineinfile:
+        path: /opt/mattermost/app/Dockerfile
+        insertafter: '^COPY entrypoint.sh /'
+        line: 'COPY bigbluebutton.tar.gz /'
+      when: bbb|bool == True
+
+    - name: Fetch Big Blue Button plugin
+      get_url:
+        url: "https://github.com/blindsidenetworks/mattermost-plugin-bigbluebutton/releases/download/v{{ bbb_version }}/bigbluebutton_linux_amd64.tar.gz"
+        dest: /opt/mattermost/app/bigbluebutton.tar.gz
+      become: yes
+      become_user: mattermost
+      when: bbb|bool == True
+
+    - name: Build the Mattermost Docker Service(s)
+      shell: |
+        docker-compose build
+        docker-compose up -d
+      args:
+        chdir: /opt/mattermost/
+
+    - name: Wait for DB before Adding Plugin
+      pause:
+        seconds: 10
+
+    - name: Add BBB Plugin to Mattermost
+      shell: |
+        docker exec mattermost_app_1 mattermost plugin add /bigbluebutton.tar.gz
+        docker exec mattermost_app_1 mattermost plugin enable bigbluebutton
+      when: bbb|bool == True

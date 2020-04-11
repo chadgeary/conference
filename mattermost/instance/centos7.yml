@@ -1,0 +1,37 @@
+---
+- name: ubuntu1604
+  hosts: localhost
+  connection: local
+  gather_facts: False
+  tasks:
+    - name: CentOS 7 Official AMI
+      ec2_ami_info:
+        owners: aws-marketplace
+        region: "{{ region }}"
+        filters:
+          product-code: "aw0evgkw8e5c1q413zgy5pjce"
+          name: "CentOS Linux 7 x86_64 HVM*"
+          architecture: "x86_64"
+      register: centos7_amis
+
+    - name: Centos 7 Official Latest AMI
+      set_fact:
+        latest_ami: >
+          {{ centos7_amis.images | sort(attribute='creation_date') | last }}
+
+    - name: Create Centos 7 Instance
+      ec2:
+        region: "{{ region }}"
+        group_id: "{{ sgroup_id }}"
+        vpc_subnet_id: "{{ subnet_id }}"
+        key_name: "{{ key_name }}"
+        image: "{{ latest_ami.image_id }}"
+        instance_tags:
+          Name: "{{ instance_name }}"
+          Source: "ansible"
+        instance_type: "{{ instance_type }}"
+        volumes:
+          - device_name: /dev/sda1
+            volume_type: gp2
+            volume_size: "{{ disk_gb }}"
+        count: "1"
