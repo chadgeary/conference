@@ -25,7 +25,7 @@
 
     - name: Pre-LetsEncrypt HTTPD Include
       lineinfile:
-        path: /etc/http/conf/httpd.conf
+        path: /etc/httpd/conf/httpd.conf
         line: 'Include /etc/httpd/conf/mattermost.conf'
 
     - name: Pre-LetsEncrypt HTTPD Placeholder Conf
