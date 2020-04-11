@@ -8,6 +8,7 @@ ansible-playbook bigbluebutton.yml --extra-vars="target=localhost my_hostname=mm
 ```
 
 # Notes
+- The final step of this playbook outputs the URL and Secret for Mattermost's BBB Plugin.
 - BBB's installation script automatically integrates LetsEncrypt-signed certificate.
 
 # Todo
