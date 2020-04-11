@@ -209,8 +209,9 @@
       pause:
         seconds: 10
 
-    - name: Install BBB Plugin to Mattermost
+    - name: Set Mattermost SiteURL and Install BBB Plugin to Mattermost
       shell: |
+        docker exec mattermost_app_1 mattermost config set ServiceSettings.SiteURL {{ my_hostname }}
         docker exec mattermost_app_1 mattermost plugin add /bigbluebutton.tar.gz
         docker exec mattermost_app_1 mattermost plugin enable bigbluebutton
       when: bbb|bool == True
