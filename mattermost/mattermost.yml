@@ -21,7 +21,15 @@
           - docker-compose
           - git
           - httpd
+          - libselinux-python
+          - libsemanage-python
           - mod_ssl
+
+    - name: Allow HTTPD Network Connect for websocket
+      seboolean:
+        name: httpd_can_network_connect
+        state: yes
+        persistent: yes
 
     - name: Pre-LetsEncrypt HTTPD Include
       lineinfile:
