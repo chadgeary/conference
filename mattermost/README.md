@@ -9,3 +9,4 @@ sudo ansible-playbook mattermost.yml --extra-vars="target=localhost my_email=cha
 
 # Notes
 - DB password is generated on first run.
+- LetsEncrypt-signed frontend with Apache httpd.
