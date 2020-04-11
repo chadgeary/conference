@@ -1,5 +1,5 @@
 # Reference
-Playbooks for feature-rich self-hosted chat and video/audio conferencing with BigBlueButton and Mattermost open source projects.
+Playbooks for feature-rich self-hosted chat with seamless video/audio conferencing using BigBlueButton and Mattermost open source projects.
 
 # Requirements
 BigBlueButton https://github.com/bigbluebutton
@@ -13,16 +13,9 @@ Mattermost https://github.com/mattermost
 - See /mattermost/instance for an AWS EC2 instance building playbook.
 
 # Installation
-BigBlueButton
-```
-# playbook
-```
+See READMEs of BigBlueButton and Mattermost subdirectories.
 
-Mattermost
-```
-# playbook
-```
-
-# Post-Installation
-- MM First User
-- Add BBB URL and API key to Plugin
+# Post-Installation Tasks
+- Create administrator account for Mattermost by browsing to your Mattermost server, e.g. https://mm.chadg.net
+- Set 'Enable integrations to override usernames' and 'Enable integrations to override profile picture icons' in Mattermost Web System Console -> Integrations
+- Add the BigBlueButton Server URL (e.g. https://bbb.chadg.net/bigbluebutton/api) and Secret as output in the BigBlueButton ansible playbook
